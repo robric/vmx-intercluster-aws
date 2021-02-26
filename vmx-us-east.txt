@@ -1,0 +1,93 @@
+set version 18.4R1.8
+set groups global system login user jnpr uid 2000
+set groups global system login user jnpr class super-user
+set groups global system login user jnpr authentication ssh-rsa "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCdC5kZRHYH3ygV+hcNPRXDkB5YOnip6J1rE2jHH5jbacCrkZeyBNmDZJPIcXzCgX5r5DbvCCRQ2+12H7XSCMDzqKI7ZRK6o82rBujg2+Bkm30Zn9cNgepgxctEJlsxfahol4ZLgRVxXq8CF/a3La2hsXnsTtN6fVFlmyThDoeNysBwl2VeI9JFAav8F6ZnurbfOgipnib78v7W+1WvCPELYpnzssy4qPsWRgECFxbH35fGDvKJ3muGhfFoFsg6SMxk+xZVz/844I3OZm0lrjjex01Lyr3aVM2EJUpwR5VLeV9ZUiRh3F8lx67cCYV1hrmInJo6QGI5mavq+OPIkoDn egrivas"
+set groups global system root-authentication encrypted-password "$6$//iuUr/R$029qyyYoD6JfGPDLjXDwrbzahBH7MklPsbn2Y.1iqNE3l5cR2q7wojKX1Qsyfp11qXZ/tFRXdnM41rsoi0Ol8/"
+set groups global system services ssh root-login deny-password
+set groups global system services netconf ssh
+set groups global system host-name ip-10-10-1-232
+set groups global system syslog user * any emergency
+set groups global system syslog file messages any notice
+set groups global system syslog file messages authorization info
+set groups global system syslog file interactive-commands interactive-commands any
+set groups global interfaces fxp0 unit 0 family inet address 10.10.1.232/24
+set apply-groups global
+set system services extension-service request-response grpc clear-text port 50051
+set system services extension-service request-response grpc skip-authentication
+set system host-name vmx-us-east-to-edge
+set system schema openconfig unhide
+set system ntp server 169.254.169.123
+set chassis fpc 0 pic 0 tunnel-services
+set chassis fpc 0 pic 0 interface-type ge
+set chassis fpc 0 pic 0 inline-services
+set chassis fpc 0 pic 0 number-of-ports 10
+set services service-set test next-hop-service inside-service-interface si-0/0/0.1
+set services service-set test next-hop-service outside-service-interface si-0/0/0.2
+set services service-set test ipsec-vpn-options local-gateway 10.10.0.210
+set services service-set test ipsec-vpn-rules test-vpn
+set services ipsec-vpn rule test-vpn term 1 then remote-gateway 54.177.41.249
+set services ipsec-vpn rule test-vpn term 1 then dynamic ike-policy ike-policy
+set services ipsec-vpn rule test-vpn term 1 then dynamic ipsec-policy ipsec-policy
+set services ipsec-vpn rule test-vpn match-direction input
+set services ipsec-vpn ipsec proposal ipsec-proposal authentication-algorithm hmac-sha-256-128
+set services ipsec-vpn ipsec proposal ipsec-proposal encryption-algorithm aes-256-cbc
+set services ipsec-vpn ipsec policy ipsec-policy proposals ipsec-proposal
+set services ipsec-vpn ike proposal ike-proposal authentication-method pre-shared-keys
+set services ipsec-vpn ike proposal ike-proposal dh-group group5
+set services ipsec-vpn ike proposal ike-proposal encryption-algorithm aes-256-cbc
+set services ipsec-vpn ike proposal ike-proposal lifetime-seconds 500
+set services ipsec-vpn ike policy ike-policy proposals ike-proposal
+set services ipsec-vpn ike policy ike-policy pre-shared-key ascii-text "$9$A6SXtuO1IhyrK8XGDHkPfIEh"
+set services ipsec-vpn establish-tunnels immediately
+set interfaces ge-0/0/0 unit 0 family inet address 10.10.0.210/24
+set interfaces si-0/0/0 unit 0 family inet
+set interfaces si-0/0/0 unit 0 family mpls
+set interfaces si-0/0/0 unit 1 family inet
+set interfaces si-0/0/0 unit 1 family mpls
+set interfaces si-0/0/0 unit 1 service-domain inside
+set interfaces si-0/0/0 unit 2 family inet
+set interfaces si-0/0/0 unit 2 family mpls
+set interfaces si-0/0/0 unit 2 service-domain outside
+set interfaces ge-0/0/1 unit 0 family inet address 10.10.1.80/25
+set interfaces ge-0/0/1 unit 0 family mpls
+set interfaces ge-0/0/2 unit 0 family inet address 10.10.50.20/24
+set interfaces lo0 unit 0 family inet address 10.10.100.100/32
+set interfaces lo0 unit 2345 family inet address 2.3.4.5/32
+set routing-instances test-EW instance-type vrf
+set routing-instances test-EW interface lo0.2345
+set routing-instances test-EW vrf-target target:65001:12345
+set routing-instances test-EW vrf-table-label
+set routing-options static route 54.177.41.249/32 next-hop 10.10.0.1
+set routing-options static route 76.244.37.88/32 next-hop 10.10.0.1
+set routing-options static route 10.0.0.0/24 next-hop si-0/0/0.1
+set routing-options static route 10.0.100.100/32 next-hop si-0/0/0.1
+set routing-options static route 169.254.169.123/32 next-hop 10.0.1.1
+set routing-options static route 10.10.1.111/32 qualified-next-hop 10.10.1.111
+set routing-options route-distinguisher-id 10.10.100.100
+set routing-options autonomous-system 65000
+set routing-options dynamic-tunnels contrail-east source-address 10.10.1.80
+set routing-options dynamic-tunnels contrail-east gre
+set routing-options dynamic-tunnels contrail-east destination-networks 10.10.1.0/24
+set routing-options dynamic-tunnels contrail-core source-address 10.10.100.100
+set routing-options dynamic-tunnels contrail-core gre
+set routing-options dynamic-tunnels contrail-core destination-networks 10.0.100.100/32
+set protocols bgp traceoptions file bgp.log
+set protocols bgp traceoptions flag open
+set protocols bgp multihop ttl 64       
+set protocols bgp group core family inet unicast
+set protocols bgp group core family inet-vpn unicast
+set protocols bgp group core family inet6-vpn unicast
+set protocols bgp group core family evpn signaling
+deactivate protocols bgp group core family evpn
+set protocols bgp group core vpn-apply-export
+set protocols bgp group core neighbor 10.0.100.100 description vmx-east
+set protocols bgp group core neighbor 10.0.100.100 peer-as 65001
+set protocols bgp group contrail-dc family inet-vpn unicast
+set protocols bgp group contrail-dc family inet6-vpn unicast
+set protocols bgp group contrail-dc family evpn signaling
+set protocols bgp group contrail-dc family route-target external-paths 255
+set protocols bgp group contrail-dc family route-target advertise-default
+set protocols bgp group contrail-dc vpn-apply-export
+set protocols bgp group contrail-dc neighbor 10.10.1.111 description contrail-controller-east
+set protocols bgp group contrail-dc neighbor 10.10.1.111 peer-as 64513
+set protocols mpls interface all   
